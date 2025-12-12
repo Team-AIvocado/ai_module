@@ -1,0 +1,25 @@
+[project]
+name = "ai-module"
+version = "0.1.0"
+description = "Integrated AI module for Caloreat"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "accelerate>=1.12.0",
+    "fastapi>=0.123.5",
+    "pandas>=2.2.0,<2.3.0",
+    "pillow>=12.0.0",
+    "python-multipart>=0.0.20",
+    "pyyaml>=6.0.3",
+    "seaborn>=0.13.2",
+    "timm>=1.0.22",
+    "torch>=2.9.1",
+    "torchvision>=0.24.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.57.3",
+    "ultralytics>=8.3.232",
+    "uvicorn>=0.38.0",
+    "ibm-watsonx-ai>=1.4.7",
+    "pydantic>=2.12.4",
+    "python-dotenv>=1.2.1",
+]

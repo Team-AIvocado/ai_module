@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints
+
+# Data & Weights
+ai_module/weights/
+ai_module/inference_module/weights/
+*.onnx
+*.pt
+*.pth
+*.csv
+*.png
+*.jpg
+!assets/*.png
+
+# From inference_module
+data/
+dataset/
+datasets/
+runs/
+logs/
+output/
+
+# Distribution
+build/
+dist/
+wheels/
+*.egg-info
+
+# IDE
+.vscode/
+.idea/
+*Zone.Identifier
+*DS_Store
+
+# Experiments & Samples
+ai_module/inference_module/experiments/
+ai_module/llm_module/sample/
+inference_module/experiments/
+llm_module/sample/
