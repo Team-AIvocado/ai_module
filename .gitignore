@@ -10,11 +10,6 @@ venv/
 .ipynb_checkpoints
 
 # Data & Weights
-ai_module/weights/
-ai_module/inference_module/weights/
-*.onnx
-*.pt
-*.pth
 *.csv
 *.png
 *.jpg
