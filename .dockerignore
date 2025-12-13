@@ -1,0 +1,25 @@
+# Git settings
+.git/
+.gitignore
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Large Files & Weights (S3 Download used in prod)
+inference_module/weights/
+ai_module/inference_module/weights/
+*.pt
+*.pth
+*.onnx
+
+# Terraform
+infra/
+.terraform/
+
+# Editor
+.vscode/
+.idea/
