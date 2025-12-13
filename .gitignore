@@ -39,3 +39,13 @@ ai_module/inference_module/experiments/
 ai_module/llm_module/sample/
 inference_module/experiments/
 llm_module/sample/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+.terraform.lock.hcl
