@@ -24,5 +24,12 @@ COPY . .
 # Expose port
 EXPOSE 8001
 
+# Entrypoint script setup
+COPY scripts/entrypoint.sh /app/scripts/entrypoint.sh
+RUN chmod +x /app/scripts/entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+
 # Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
