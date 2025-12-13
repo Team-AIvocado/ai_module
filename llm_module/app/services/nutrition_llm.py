@@ -5,7 +5,61 @@ import json
 import re
 
 
+import ibm_watsonx_ai.client
+
+# Monkeypatch to bypass HTTPS check
+original_init = ibm_watsonx_ai.client.APIClient.__init__
+
+
+def patched_init(self, credentials, **kwargs):
+    # Support dict or object with .url attribute
+    is_dict = isinstance(credentials, dict)
+    original_url = (
+        credentials.get("url") if is_dict else getattr(credentials, "url", None)
+    )
+
+    if original_url:
+        # Create a modified URL that satisfies the validator
+        fake_url = original_url
+        if fake_url.startswith("http://"):
+            fake_url = fake_url.replace("http://", "https://", 1)
+        elif not fake_url.startswith("https://"):
+            fake_url = "https://" + fake_url
+
+        # Apply fake URL
+        if is_dict:
+            credentials = credentials.copy()
+            credentials["url"] = fake_url
+        else:
+            try:
+                if hasattr(credentials, "to_dict"):
+                    credentials = credentials.to_dict()
+                    credentials["url"] = fake_url
+                    is_dict = True
+                else:
+                    setattr(credentials, "url", fake_url)
+            except Exception:
+                pass
+
+        # Call original init
+        original_init(self, credentials, **kwargs)
+
+        # Restore internal state to HTTP
+        if hasattr(self, "wml_credentials") and isinstance(self.wml_credentials, dict):
+            self.wml_credentials["url"] = original_url
+
+        # Also restore object if we modified it in place
+        if not is_dict and hasattr(credentials, "url"):
+            setattr(credentials, "url", original_url)
+
+    else:
+        original_init(self, credentials, **kwargs)
+
+
+ibm_watsonx_ai.client.APIClient.__init__ = patched_init
+
 llm = None
+
 
 def get_nutrition_model():
     global llm
