@@ -41,22 +41,24 @@ RULES:
 Respond in exactly this JSON format:
 
 {{
-  "food": "{food_name}",
-  "calories": <number>,
-  "carbs_g": <number>,
-  "protein_g": <number>,
-  "fat_g": <number>,
-  "sugar_g": <number>,
-  "fiber_g": <number>,
-  "sodium_mg": <number>,
-  "cholesterol_mg": <number>,
-  "saturated_fat_g": <number>,
-  "micronutrients":{{
-    "vitamin_c_mg": <number>,
-    "calcium_mg": <number>,
-    "caffeine_mg": <number>,
-    ...
-    }}
+  "foodname": "{food_name}",
+  "nutritions": {{
+      "calories": <number>,
+      "carbs_g": <number>,
+      "protein_g": <number>,
+      "fat_g": <number>,
+      "sugar_g": <number>,
+      "fiber_g": <number>,
+      "sodium_mg": <number>,
+      "cholesterol_mg": <number>,
+      "saturated_fat_g": <number>,
+      "micronutrients": {{
+          "vitamin_c_mg": <number>,
+          "calcium_mg": <number>,
+          "caffeine_mg": <number>,
+          ...
+      }}
+  }}
 }}
 """
 
