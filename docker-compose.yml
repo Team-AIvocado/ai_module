@@ -8,9 +8,31 @@ services:
       - "8001:8001"
     volumes:
       - ./:/app
+      - proxy-certs:/app/proxy_certs
     env_file:
       - llm_module/.env
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      # Override WATSON_URL to point to the sidecar proxy
+      - WATSON_URL=https://ai-proxy:8443
+      # Trust the self-signed certificate from the proxy
+      - REQUESTS_CA_BUNDLE=/app/proxy_certs/nginx.crt
     restart: unless-stopped
+    depends_on:
+      - ai-proxy
+
+  ai-proxy:
+    build:
+      context: ./proxy
+    env_file:
+      - llm_module/.env
+    environment:
+      - TARGET_URL=${WATSON_URL}
+    ports:
+      - "8443:8443"
+    volumes:
+      - proxy-certs:/etc/nginx/certs
+
+volumes:
+  proxy-certs:

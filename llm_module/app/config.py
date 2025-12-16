@@ -33,3 +33,6 @@ class Settings:
 
 
 settings = Settings()
+
+# Monkey patch removed. Using Sidecar Proxy for HTTPS.
+# See docker-compose.yml or infra configuration.

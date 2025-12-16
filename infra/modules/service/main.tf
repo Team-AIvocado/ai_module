@@ -65,8 +65,49 @@ resource "aws_ecs_task_definition" "ai" {
       environment = [
         { name = "MODEL_REGISTRY_BUCKET", value = var.model_registry_bucket }
       ]
+      mountPoints = [
+        {
+          sourceVolume  = "proxy-certs"
+          containerPath = "/app/proxy_certs"
+          readOnly      = true
+        }
+      ]
+    },
+    {
+      name      = "ai-proxy"
+      image     = "${var.image_url}:proxy"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 8443
+          protocol      = "tcp"
+        }
+      ]
+      environment = [
+        { name = "TARGET_URL", value = var.watson_url }
+      ]
+      mountPoints = [
+        {
+          sourceVolume  = "proxy-certs"
+          containerPath = "/etc/nginx/certs"
+          readOnly      = false
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/caloreat-ai"
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "proxy"
+          "awslogs-create-group"  = "true"
+        }
+      }
     }
   ])
+
+  volume {
+    name = "proxy-certs"
+  }
 }
 
 resource "aws_ecs_service" "ai" {

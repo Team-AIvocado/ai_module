@@ -71,4 +71,5 @@ module "service" {
   task_role_arn         = module.iam.task_role_arn
   image_url             = module.ecr.repository_url
   model_registry_bucket = module.iam.bucket_name
+  watson_url            = var.watson_url
 }
