@@ -26,8 +26,15 @@ fi
 
 echo "Setting up Nginx proxy to: $TARGET_URL"
 
+# Extract hostname from TARGET_URL
+export TARGET_HOST=$(echo $TARGET_URL | awk -F/ '{print $3}' | tr -d '\r')
+echo "Extracted Host: $TARGET_HOST"
+
+# Sanitize TARGET_URL as well
+export TARGET_URL=$(echo $TARGET_URL | tr -d '\r')
+
 # Substitute environment variables in nginx.conf
-envsubst '$TARGET_URL' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+envsubst '$TARGET_URL $TARGET_HOST' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
 # Execute passed command (nginx)
 exec "$@"

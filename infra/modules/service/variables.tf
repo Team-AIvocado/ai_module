@@ -3,6 +3,17 @@ variable "watson_url" {
   type        = string
 }
 
+variable "watson_api_key" {
+  description = "API Key for WatsonX"
+  type        = string
+  sensitive   = true
+}
+
+variable "watson_project_id" {
+  description = "Project ID for WatsonX"
+  type        = string
+}
+
 variable "vpc_id" { type = string }
 variable "aws_region" { type = string }
 variable "cluster_id" { type = string }

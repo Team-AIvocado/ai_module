@@ -72,4 +72,6 @@ module "service" {
   image_url             = module.ecr.repository_url
   model_registry_bucket = module.iam.bucket_name
   watson_url            = var.watson_url
+  watson_api_key        = var.watson_api_key
+  watson_project_id     = var.watson_project_id
 }

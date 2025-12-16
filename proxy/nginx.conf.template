@@ -8,9 +8,12 @@ http {
         ssl_certificate /etc/nginx/certs/nginx.crt;
         ssl_certificate_key /etc/nginx/certs/nginx.key;
 
+        resolver 127.0.0.11 ipv6=off;
+
         location / {
             proxy_pass $TARGET_URL;
-            proxy_set_header Host $host;
+            proxy_set_header Host $TARGET_HOST;
+            proxy_ssl_server_name on;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;

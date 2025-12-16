@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from ibm_watsonx_ai import Credentials
+import ibm_watsonx_ai.href_definitions
 
 from pathlib import Path
 
@@ -29,10 +30,22 @@ class Settings:
             raise ValueError(
                 "Missing WatsonX credentials (WATSON_API_KEY, WATSON_URL) in environment variables."
             )
-        return Credentials(api_key=self.WATSON_API_KEY, url=self.WATSON_URL)
+        return Credentials(
+            api_key=self.WATSON_API_KEY,
+            url=self.WATSON_URL,
+            platform_url="https://api.dataplatform.cloud.ibm.com",
+        )
 
 
 settings = Settings()
 
 # Monkey patch removed. Using Sidecar Proxy for HTTPS.
 # See docker-compose.yml or infra configuration.
+
+# PATCH: Add the proxy URL to the list of production URLs to force IAM Prod Authentication.
+# Without this, the SDK defaults to 'https://iam.test.cloud.ibm.com' for unknown URLs.
+if (
+    settings.WATSON_URL
+    and settings.WATSON_URL not in ibm_watsonx_ai.href_definitions.PROD_SVT_URL
+):
+    ibm_watsonx_ai.href_definitions.PROD_SVT_URL.append(settings.WATSON_URL)
