@@ -11,7 +11,9 @@ __pycache__/
 
 # Large Files & Weights (S3 Download used in prod)
 inference_module/weights/
+!inference_module/weights/classes_v2.txt
 ai_module/inference_module/weights/
+!ai_module/inference_module/weights/classes_v2.txt
 *.pt
 *.pth
 *.onnx
