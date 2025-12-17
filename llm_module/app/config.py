@@ -30,15 +30,25 @@ class Settings:
             raise ValueError(
                 "Missing WatsonX credentials (WATSON_API_KEY, WATSON_URL) in environment variables."
             )
+        print(f"DEBUG: WATSON_URL={self.WATSON_URL}")
+        if "127.0.0.1" in self.WATSON_URL or "ai-proxy" in self.WATSON_URL:
+            # Use the combined CA bundle created by entrypoint.sh
+            # This contains both Certifi roots (for IAM) and our Proxy Cert (for Watson)
+            verify_path = "/tmp/ca_bundle.crt"
+            if not os.path.exists(verify_path):
+                print(f"WARNING: Combined CA Bundle not found at {verify_path}")
+
+            return Credentials(
+                api_key=self.WATSON_API_KEY,
+                url=self.WATSON_URL,
+                platform_url="https://api.dataplatform.cloud.ibm.com",
+                verify=verify_path,
+            )
         return Credentials(
             api_key=self.WATSON_API_KEY,
             url=self.WATSON_URL,
             platform_url="https://api.dataplatform.cloud.ibm.com",
-            verify=(
-                "/tmp/ca_bundle.crt"
-                if "127.0.0.1" in self.WATSON_URL or "ai-proxy" in self.WATSON_URL
-                else None
-            ),
+            verify=None,
         )
 
 

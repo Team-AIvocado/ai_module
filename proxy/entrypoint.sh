@@ -4,13 +4,13 @@
 mkdir -p /etc/nginx/certs
 
 # Generate self-signed certificate if not exists
-if [ ! -f /etc/nginx/certs/nginx.key ]; then
-    echo "Generating self-signed certificate..."
-    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-        -keyout /etc/nginx/certs/nginx.key \
-        -out /etc/nginx/certs/nginx.crt \
-        -subj "/C=KR/ST=Seoul/L=Gangnam/O=Caloreat/CN=localhost"
-fi
+# Generate self-signed certificate (Force regeneration to include correct SANs)
+echo "Generating self-signed certificate with SANs..."
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+    -keyout /etc/nginx/certs/nginx.key \
+    -out /etc/nginx/certs/nginx.crt \
+    -subj "/C=KR/ST=Seoul/L=Gangnam/O=Caloreat/CN=ai-proxy" \
+    -addext "subjectAltName = DNS:ai-proxy,DNS:localhost,IP:127.0.0.1"
 
 # Fallback to WATSON_URL if TARGET_URL is not set
 if [ -z "$TARGET_URL" ]; then
