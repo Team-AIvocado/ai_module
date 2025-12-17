@@ -65,7 +65,6 @@ resource "aws_ecs_task_definition" "ai" {
       environment = [
         { name = "MODEL_REGISTRY_BUCKET", value = var.model_registry_bucket },
         { name = "WATSON_URL", value = "https://127.0.0.1:8443" },
-        { name = "REQUESTS_CA_BUNDLE", value = "/app/proxy_certs/nginx.crt" },
         { name = "WATSON_API_KEY", value = var.watson_api_key },
         { name = "WATSON_PROJECT_ID", value = var.watson_project_id }
       ]

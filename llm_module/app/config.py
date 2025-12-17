@@ -34,6 +34,11 @@ class Settings:
             api_key=self.WATSON_API_KEY,
             url=self.WATSON_URL,
             platform_url="https://api.dataplatform.cloud.ibm.com",
+            verify=(
+                "/app/proxy_certs/nginx.crt"
+                if "127.0.0.1" in self.WATSON_URL or "ai-proxy" in self.WATSON_URL
+                else None
+            ),
         )
 
 

@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM --platform=linux/amd64 nginx:alpine
 
 # Install OpenSSL and gettext (for envsubst)
 RUN apk add --no-cache openssl gettext
