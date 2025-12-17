@@ -4,14 +4,33 @@ set -e
 echo "Starting deployment script..."
 
 # Create a combined CA bundle for Watson SDK (IAM Public Certs + Proxy Self-Signed Cert)
-if [ -f "/app/proxy_certs/nginx.crt" ]; then
-    echo "Creating combined CA bundle..."
-    # Get location of certifi's cacert.pem
-    CERTIFI_PEM=$(python -c "import certifi; print(certifi.where())")
-    cat "$CERTIFI_PEM" /app/proxy_certs/nginx.crt > /app/ca_bundle.crt
-    echo "Created /app/ca_bundle.crt"
+# Check if we need to wait for proxy certificate
+if [[ "$WATSON_URL" == *"127.0.0.1"* ]] || [[ "$WATSON_URL" == *"ai-proxy"* ]]; then
+    echo "Using Proxy mode. Waiting for certificate at /app/proxy_certs/nginx.crt..."
+    
+    # Wait up to 30 seconds for the certificate
+    TIMEOUT=30
+    COUNTER=0
+    while [ ! -f "/app/proxy_certs/nginx.crt" ]; do
+        if [ $COUNTER -ge $TIMEOUT ]; then
+            echo "Error: Certificate not found after $TIMEOUT seconds."
+            break
+        fi
+        echo "Waiting for certificate... ($COUNTER/$TIMEOUT)"
+        sleep 1
+        COUNTER=$((COUNTER+1))
+    done
+
+    if [ -f "/app/proxy_certs/nginx.crt" ]; then
+        echo "Certificate found. Creating combined CA bundle..."
+        CERTIFI_PEM=$(python -c "import certifi; print(certifi.where())")
+        cat "$CERTIFI_PEM" /app/proxy_certs/nginx.crt > /app/ca_bundle.crt
+        echo "Created /app/ca_bundle.crt"
+    else
+        echo "Warning: Failed to create CA bundle. Authentication may fail."
+    fi
 else
-    echo "Warning: Proxy certificate not found. Skipping CA bundle creation."
+    echo "Not using Proxy mode (WATSON_URL=$WATSON_URL). Skipping CA bundle creation."
 fi
 
 # Download weights from S3
