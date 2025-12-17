@@ -24,8 +24,9 @@ if [[ "$WATSON_URL" == *"127.0.0.1"* ]] || [[ "$WATSON_URL" == *"ai-proxy"* ]]; 
     if [ -f "/app/proxy_certs/nginx.crt" ]; then
         echo "Certificate found. Creating combined CA bundle..."
         CERTIFI_PEM=$(python -c "import certifi; print(certifi.where())")
-        cat "$CERTIFI_PEM" /app/proxy_certs/nginx.crt > /app/ca_bundle.crt
-        echo "Created /app/ca_bundle.crt"
+        cat "$CERTIFI_PEM" /app/proxy_certs/nginx.crt > /tmp/ca_bundle.crt
+        echo "Created /tmp/ca_bundle.crt"
+        ls -l /tmp/ca_bundle.crt
     else
         echo "Warning: Failed to create CA bundle. Authentication may fail."
     fi

@@ -35,7 +35,7 @@ class Settings:
             url=self.WATSON_URL,
             platform_url="https://api.dataplatform.cloud.ibm.com",
             verify=(
-                "/app/ca_bundle.crt"
+                "/tmp/ca_bundle.crt"
                 if "127.0.0.1" in self.WATSON_URL or "ai-proxy" in self.WATSON_URL
                 else None
             ),
