@@ -192,7 +192,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MLOps Training Pipeline")
     parser.add_argument("csv_path", type=str, help="Path to dataset CSV")
     parser.add_argument("--class-file", type=str, default="inference_module/weights/classes_v2.txt", help="Path to classes.txt")
+    parser.add_argument("--epochs", type=int, default=1, help="Number of epochs to train")
     
     args = parser.parse_args()
     
-    train_pipeline(args.csv_path, args.class_file)
+    train_pipeline(args.csv_path, args.class_file, epochs=args.epochs)
