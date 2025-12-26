@@ -9,6 +9,7 @@ services:
     volumes:
       - ./:/app
       - proxy-certs:/app/proxy_certs
+      - ${HOME}/.aws:/root/.aws:ro
     env_file:
       - llm_module/.env
     environment:
