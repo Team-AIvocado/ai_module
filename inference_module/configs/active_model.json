@@ -1,0 +1,16 @@
+{
+  "efficientnet-b0-cls": {
+    "version": "local-dev",
+    "weights_path": "classifier_effnet_finetuned/best_effnet_b0.pt",
+    "class_file": "classes_v2.txt"
+  },
+  "yolo-cls": {
+    "version": "local-dev",
+    "weights_path": "classifier_yolo_finetuned/weights/best.pt",
+    "class_file": "classes_v2.txt"
+  },
+  "detector": {
+    "version": "local-dev",
+    "weights_path": "detector/kfood_integrated_detector/weights/best.pt"
+  }
+}
