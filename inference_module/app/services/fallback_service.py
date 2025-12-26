@@ -1,8 +1,7 @@
 from llm_module.app.services.multimodal_mock import mock_food_classifier
 
-# Threshold for triggering LLM fallback
-# Using 0.9 as requested for testing purposes
-CONFIDENCE_THRESHOLD = 0.9
+# TODO: 이부분 적정값으로 수정 - MLOps를 위해서 임시 0 으로 설정
+CONFIDENCE_THRESHOLD = 0.0
 
 async def process_fallback(result, image_bytes=None, image_url=None):
     """
