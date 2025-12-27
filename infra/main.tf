@@ -5,6 +5,11 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "s3" {
+    bucket = "caloreat-model-registry-20251213194629951300000002"
+    key    = "ai_module/terraform.tfstate"
+    region = "ap-northeast-2"
+  }
 }
 
 provider "aws" {
