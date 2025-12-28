@@ -42,7 +42,7 @@ class Settings:
                 api_key=self.WATSON_API_KEY,
                 url=self.WATSON_URL,
                 platform_url="https://api.dataplatform.cloud.ibm.com",
-                verify=False,  # FORCED BYPASS: Local SSL bundle issue persists
+                verify=False,
             )
         return Credentials(
             api_key=self.WATSON_API_KEY,
