@@ -19,6 +19,12 @@ services:
       - WATSON_URL=https://ai-proxy:8443
       # Trust the self-signed certificate from the proxy
       - REQUESTS_CA_BUNDLE=/app/proxy_certs/nginx.crt
+      # S3 Model Registry
+      - MODEL_REGISTRY_BUCKET=caloreat-model-registry-20251213194629951300000002
+      # Pass AWS Credentials for S3 Download
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
     restart: unless-stopped
     depends_on:
       - ai-proxy

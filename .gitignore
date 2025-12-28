@@ -49,3 +49,6 @@ crash.log
 override.tf
 override.tf.json
 .terraform.lock.hcl
+
+# 추후 서비스training 추가 pt 업로드 방지
+*.pt

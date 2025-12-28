@@ -28,12 +28,31 @@ def predict_v3(img, image_id):
     top5_conf = chosen.probs.top5conf[:3]
 
     # Use translated names for candidates if available
-    class_names = yolo_cls.class_names if yolo_cls.class_names else chosen.names
-    labels = [class_names[i] for i in top5_idx]
-    confs = [float(top5_conf[i]) for i in range(3)]
+    classes = yolo_cls.class_names if yolo_cls.class_names else chosen.names
+    
+    # Cleaning & Deduplication (Same logic as V4)
+    final_candidates = []
+    seen_labels = set()
+
+    # top5까지 순회하면서 중복 제거 후 3개 채우기
+    for i in range(len(top5_idx)):
+        # 1. Clean Label
+        raw_label = str(classes[top5_idx[i]])
+        cleaned_label = raw_label.replace(".", "").strip()
+        conf = float(top5_conf[i])
+
+        # 2. Deduplication
+        if cleaned_label in seen_labels:
+            continue
+        seen_labels.add(cleaned_label)
+
+        final_candidates.append({"label": cleaned_label, "confidence": conf})
+        
+        if len(final_candidates) >= 3:
+            break
 
     return {
         "image_id": image_id,
-        "food_name": final_label,
-        "candidates": [{"label": labels[i], "confidence": confs[i]} for i in range(3)],
+        "food_name": final_candidates[0]["label"] if final_candidates else "Unknown",
+        "candidates": final_candidates,
     }
