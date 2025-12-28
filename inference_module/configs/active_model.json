@@ -1,8 +1,9 @@
 {
   "efficientnet-b0-cls": {
-    "version": "local-dev",
-    "weights_path": "classifier_effnet_finetuned/best_effnet_b0.pt",
-    "class_file": "classes_v2.txt"
+    "version": "v5.0.0-20251227172529",
+    "weights_path": "efficientnet-b0-cls/v5.0.0-20251227172529/model.pt",
+    "class_file": "classes_v2.txt",
+    "threshold": 0.9
   },
   "yolo-cls": {
     "version": "local-dev",

@@ -32,11 +32,28 @@ def predict_v4(img, image_id):
 
     labels = [effnet_cls.class_names[i] for i in top3_idx]
 
+    # Magic Number Protocol Logic moved to fallback_service.py
+    # We only ensure clean labels and deduplication here.
+    
+    final_candidates = []
+    seen_labels = set()
+
+    for i in range(len(labels)):
+        # 1. Clean Label (Remove dots and spaces for deduplication)
+        raw_label = str(labels[i])
+        cleaned_label = raw_label.replace(".", "").strip()
+        
+        conf = float(top3_conf[i])
+        
+        # 2. Deduplication
+        if cleaned_label in seen_labels:
+            continue
+        seen_labels.add(cleaned_label)
+        
+        final_candidates.append({"label": cleaned_label, "confidence": conf})
+
     return {
         "image_id": image_id,
-        "food_name": labels[0],
-        "candidates": [
-            {"label": labels[i], "confidence": float(top3_conf[i])}
-            for i in range(len(labels))
-        ],
+        "food_name": final_candidates[0]["label"] if final_candidates else "Unknown",
+        "candidates": final_candidates,
     }

@@ -116,6 +116,8 @@ yolo_cls = YOLOClassifier(
 effnet_cls = EffnetClassifier(
     weight_path=EFFNET_PATH, device=DEVICE, class_file=EFFNET_CLASS_FILE
 )
+# Inject Threshold
+effnet_cls.threshold = active_config["efficientnet-b0-cls"].get("threshold", 0.0)
 
 # Detector
 detector = Detector(weight_path=DETECTOR_PATH, device=DEVICE)
