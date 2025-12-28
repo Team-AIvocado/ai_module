@@ -20,7 +20,9 @@ resource "aws_iam_policy" "model_registry_policy" {
         ]
         Resource = [
           aws_s3_bucket.model_registry.arn,
-          "${aws_s3_bucket.model_registry.arn}/*"
+          "${aws_s3_bucket.model_registry.arn}/*",
+          "arn:aws:s3:::caloreat-storage-*",
+          "arn:aws:s3:::caloreat-storage-*/*"
         ]
       }
     ]

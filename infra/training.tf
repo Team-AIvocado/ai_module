@@ -105,8 +105,8 @@ resource "aws_ecs_task_definition" "training" {
   family                   = "caloreat-training-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 2048 # 2 vCPU
-  memory                   = 8192 # 8 GB 
+  cpu                      = 16384 # 16 vCPU (Max Fargate)
+  memory                   = 32768 # 32 GB 
 
   execution_role_arn = data.aws_iam_role.execution_role.arn
   task_role_arn      = module.iam.task_role_arn
