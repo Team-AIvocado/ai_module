@@ -71,7 +71,7 @@ def lambda_handler(event, context):
                 "LocalPath": "/opt/ml/checkpoints",
             },
             # Pass Hyperparameters if needed
-            HyperParameters={"epochs": "5", "batch-size": "32"},
+            HyperParameters={"epochs": "20", "batch-size": "32"},
         )
 
         print(f"Started Training Job: {job_name}")

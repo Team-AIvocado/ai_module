@@ -305,15 +305,26 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Debug: Print Environment Variables
-    print("--- Debug: Environment Variables ---")
-    for k, v in os.environ.items():
-        if k.startswith("SM_"):
-            print(f"{k}={v}")
+    # --- SageMaker Integration: Hyperparameters & Paths ---
+    import json
     
-    # Fallback: If SM_CHANNEL_TRAIN is missing but directory exists (common in custom entrypoints)
+    # 1. Read Hyperparameters (overrides CLI args)
+    hp_file = "/opt/ml/input/config/hyperparameters.json"
+    if os.path.exists(hp_file):
+        try:
+            with open(hp_file, "r") as f:
+                hp = json.load(f)
+                print(f"SageMaker Hyperparameters Loaded: {hp}")
+                if "epochs" in hp:
+                    args.epochs = int(hp["epochs"])
+        except Exception as e:
+            print(f"Warning: Failed to load hyperparameters: {e}")
+
+    # 2. Path Fallbacks (if env vars missing)
+    if not os.environ.get("SM_MODEL_DIR") and os.path.exists("/opt/ml/model"):
+         os.environ["SM_MODEL_DIR"] = "/opt/ml/model"
+    
     if not os.environ.get("SM_CHANNEL_TRAIN") and os.path.exists("/opt/ml/input/data/train"):
-        print("Warning: SM_CHANNEL_TRAIN not set, but found /opt/ml/input/data/train. Setting manually.")
         os.environ["SM_CHANNEL_TRAIN"] = "/opt/ml/input/data/train"
 
     # Validate inputs
