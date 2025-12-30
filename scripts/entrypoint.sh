@@ -54,7 +54,7 @@ if [ "$1" = "train" ]; then
     # We run the training module.
     # PYTHONPATH is /app
     export PYTHONPATH=$PYTHONPATH:/app
-    exec python -m ai_module.training.train "${@:2}"
+    exec python -m training.train "${@:2}"
 elif [ "$1" = "serve" ]; then
     echo "[System] SageMaker Serving Mode detected."
     exec uvicorn main:app --host 0.0.0.0 --port 8080
