@@ -1,3 +1,7 @@
+
+# ----------------------------------------------------------------------------------------------
+# 1. EventBridge Rule (S3 Upload Trigger) - 기존 유지
+# ----------------------------------------------------------------------------------------------
 resource "aws_cloudwatch_event_rule" "s3_upload" {
   name        = "caloreat-training-trigger"
   description = "Trigger training when new dataset is uploaded to S3"
@@ -18,61 +22,76 @@ resource "aws_cloudwatch_event_rule" "s3_upload" {
   })
 }
 
-resource "aws_cloudwatch_event_target" "ecs_training" {
+# ----------------------------------------------------------------------------------------------
+# 2. Lambda Function (Trigger for SageMaker)
+# ----------------------------------------------------------------------------------------------
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/lambdas/trigger_training.py"
+  output_path = "${path.module}/lambdas/trigger_training.zip"
+}
+
+resource "aws_lambda_function" "trigger_training" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "caloreat-ai-trigger-training"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "trigger_training.lambda_handler"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  runtime          = "python3.11"
+  timeout          = 60
+
+  environment {
+    variables = {
+      SAGEMAKER_ROLE_ARN = aws_iam_role.sagemaker_exec.arn
+      TRAINING_IMAGE_URI = "${module.ecr.repository_url}:latest"
+      INSTANCE_TYPE      = "ml.g4dn.xlarge"
+    }
+  }
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.trigger_training.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.s3_upload.arn
+}
+
+# ----------------------------------------------------------------------------------------------
+# 3. EventBridge Target -> Lambda
+# ----------------------------------------------------------------------------------------------
+resource "aws_cloudwatch_event_target" "lambda_training" {
   rule      = aws_cloudwatch_event_rule.s3_upload.name
-  target_id = "TriggerTrainingTask"
-  arn       = data.aws_ecs_cluster.main.arn
-  role_arn  = aws_iam_role.eventbridge_role.arn
-
-  ecs_target {
-    task_count          = 1
-    task_definition_arn = aws_ecs_task_definition.training.arn
-    launch_type         = "FARGATE"
-    network_configuration {
-      subnets          = data.aws_subnets.private.ids
-      security_groups  = [data.aws_security_group.ecs_sg.id]
-      assign_public_ip = true
-    }
-  }
-
-  input_transformer {
-    input_paths = {
-      s3_bucket = "$.detail.bucket.name"
-      s3_key    = "$.detail.object.key"
-    }
-    input_template = <<EOF
-{
-  "containerOverrides": [
-    {
-      "name": "training-container",
-      "command": ["python", "-m", "training.train", "s3://<s3_bucket>/<s3_key>", "--epochs", "5"]
-    }
-  ]
-}
-EOF
-  }
+  target_id = "TriggerTrainingLambda"
+  arn       = aws_lambda_function.trigger_training.arn
 }
 
-resource "aws_iam_role" "eventbridge_role" {
-  name = "caloreat-eventbridge-ecs-role"
+# ----------------------------------------------------------------------------------------------
+# 4. IAM Roles & Policies
+# ----------------------------------------------------------------------------------------------
+
+# --- A. Lambda Execution Role ---
+resource "aws_iam_role" "lambda_exec" {
+  name = "caloreat-lambda-training-trigger-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "events.amazonaws.com"
-        }
-      }
-    ]
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
   })
 }
 
-resource "aws_iam_role_policy" "eventbridge_policy" {
-  name = "caloreat-eventbridge-ecs-policy"
-  role = aws_iam_role.eventbridge_role.id
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "lambda_sagemaker_policy" {
+  name = "caloreat-lambda-sagemaker-policy"
+  role = aws_iam_role.lambda_exec.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -80,62 +99,55 @@ resource "aws_iam_role_policy" "eventbridge_policy" {
       {
         Effect = "Allow"
         Action = [
-          "ecs:RunTask"
+          "sagemaker:CreateTrainingJob",
+          "iam:PassRole" 
         ]
-        Resource = [aws_ecs_task_definition.training.arn]
-        Condition = {
-          ArnEquals = {
-            "ecs:cluster" = data.aws_ecs_cluster.main.arn
-          }
-        }
-      },
-      {
-        Effect = "Allow"
-        Action = "iam:PassRole"
-        Resource = [
-          data.aws_iam_role.execution_role.arn,
-          module.iam.task_role_arn
-        ]
+        Resource = "*" # Restrict resource in production
       }
     ]
   })
 }
 
-resource "aws_ecs_task_definition" "training" {
-  family                   = "caloreat-training-task"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = 16384 # 16 vCPU (Max Fargate)
-  memory                   = 32768 # 32 GB 
+# --- B. SageMaker Execution Role (Used by the Training Job) ---
+resource "aws_iam_role" "sagemaker_exec" {
+  name = "caloreat-sagemaker-execution-role"
 
-  execution_role_arn = data.aws_iam_role.execution_role.arn
-  task_role_arn      = module.iam.task_role_arn
-
-  container_definitions = jsonencode([
-    {
-      name      = "training-container"
-      image     = "${module.ecr.repository_url}:latest"
-      essential = true
-      command   = ["python", "-m", "training.train", "dataset_placeholder.csv"] # Overridden by EventBridge
-      
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = "/ecs/caloreat-training"
-          "awslogs-region"        = "ap-northeast-2"
-          "awslogs-stream-prefix" = "training"
-          "awslogs-create-group"  = "true"
-        }
-      }
-      environment = [
-        { name = "MODEL_REGISTRY_BUCKET", value = module.iam.bucket_name }
-      ]
-    }
-  ])
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "sagemaker.amazonaws.com" }
+    }]
+  })
 }
 
-# S3 EventBridge Notification Enable (Optional but recommended)
-resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket      = module.iam.bucket_name
-  eventbridge = true
+# Standard SageMaker Policy (CloudWatch Logs, Metrics, etc.)
+resource "aws_iam_role_policy_attachment" "sagemaker_full" {
+  role       = aws_iam_role.sagemaker_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+}
+
+# S3 Access Policy for SageMaker (Read Datasets, Write Models)
+resource "aws_iam_role_policy" "sagemaker_s3_policy" {
+  name = "caloreat-sagemaker-s3-policy"
+  role = aws_iam_role.sagemaker_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::${module.iam.bucket_name}",
+          "arn:aws:s3:::${module.iam.bucket_name}/*"
+        ]
+      }
+    ]
+  })
 }
