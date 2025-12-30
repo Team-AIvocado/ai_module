@@ -16,8 +16,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+from typing import Optional
+
 def train_pipeline(
-    csv_path: str,
+    csv_path: Optional[str],
     class_file: str,
     epochs: int = 1,
     batch_size: int = 4,
@@ -281,7 +283,13 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="MLOps Training Pipeline")
-    parser.add_argument("csv_path", type=str, help="Path to dataset CSV")
+    parser.add_argument(
+        "csv_path", 
+        type=str, 
+        nargs="?",  # Optional argument
+        default=None, 
+        help="Path to dataset CSV (Optional in SageMaker mode)"
+    )
     parser.add_argument(
         "--class-file",
         type=str,
@@ -296,6 +304,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # Validate inputs
+    if not args.csv_path and not os.environ.get("SM_CHANNEL_TRAIN"):
+        parser.error("csv_path is required (unless running in SageMaker with SM_CHANNEL_TRAIN set)")
 
     train_pipeline(
         args.csv_path, args.class_file, epochs=args.epochs, upload_s3=not args.no_upload
