@@ -305,9 +305,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Debug: Print Environment Variables
+    print("--- Debug: Environment Variables ---")
+    for k, v in os.environ.items():
+        if k.startswith("SM_"):
+            print(f"{k}={v}")
+    
+    # Fallback: If SM_CHANNEL_TRAIN is missing but directory exists (common in custom entrypoints)
+    if not os.environ.get("SM_CHANNEL_TRAIN") and os.path.exists("/opt/ml/input/data/train"):
+        print("Warning: SM_CHANNEL_TRAIN not set, but found /opt/ml/input/data/train. Setting manually.")
+        os.environ["SM_CHANNEL_TRAIN"] = "/opt/ml/input/data/train"
+
     # Validate inputs
     if not args.csv_path and not os.environ.get("SM_CHANNEL_TRAIN"):
-        parser.error("csv_path is required (unless running in SageMaker with SM_CHANNEL_TRAIN set)")
+        parser.error(f"csv_path is required. Env SM_CHANNEL_TRAIN={os.environ.get('SM_CHANNEL_TRAIN')}")
 
     train_pipeline(
         args.csv_path, args.class_file, epochs=args.epochs, upload_s3=not args.no_upload
