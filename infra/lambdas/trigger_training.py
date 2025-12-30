@@ -61,7 +61,10 @@ def lambda_handler(event, context):
                 "InstanceCount": 1,
                 "VolumeSizeInGB": 50,
             },
-            StoppingCondition={"MaxRuntimeInSeconds": 3600},  # 1 hour timeout
+            StoppingCondition={
+                "MaxRuntimeInSeconds": 3600,
+                "MaxWaitTimeInSeconds": 3600 # Required for Spot Training (>= MaxRuntime)
+            },
             EnableManagedSpotTraining=True,  # Cost optimization!
             CheckpointConfig={  # Required for Spot Training
                 "S3Uri": f"s3://{bucket_name}/checkpoints/{job_name}",

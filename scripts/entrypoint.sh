@@ -47,4 +47,18 @@ fi
 echo "[System] 추론 모듈 시작 준비 완료."
 
 # Run the application
-exec "$@"
+if [ "$1" = "train" ]; then
+    echo "[System] SageMaker Training Mode detected."
+    # Shift arguments to allow passing extra args to train.py if needed, 
+    # but initially SageMaker just calls 'train'.
+    # We run the training module.
+    # PYTHONPATH is /app
+    export PYTHONPATH=$PYTHONPATH:/app
+    exec python -m ai_module.training.train "${@:2}"
+elif [ "$1" = "serve" ]; then
+    echo "[System] SageMaker Serving Mode detected."
+    exec uvicorn main:app --host 0.0.0.0 --port 8080
+else
+    # Default behavior (e.g. uvicorn passed from CMD or other commands)
+    exec "$@"
+fi
